@@ -132,10 +132,7 @@ export default function InterviewPage() {
       // Time expired — submit whatever is there (or blank)
       if (phase === "question" || phase === "starting") submitAnswer();
     },
-    // Timer runs when question is active — matches isActiveQuestion logic below
-    phase === "question" ||
-      (!!question && phase === "starting") ||
-      (!!question && phase === "evaluating" && !evaluation),
+    phase === "question",
   );
 
   useEffect(() => {
@@ -211,7 +208,6 @@ export default function InterviewPage() {
               setIntroCountdown(secs);
               if (secs <= 0) {
                 clearInterval(introCountdownRef.current);
-                if (mounted) setPhase("starting");
                 sock.emit("begin_questions");
               }
             }, 1000);
@@ -372,7 +368,7 @@ export default function InterviewPage() {
   const startQuestionsNow = () => {
     clearInterval(introCountdownRef.current);
     setIntroCountdown(0);
-    setPhase("starting"); // show spinner while backend generates first question
+    // Don't change phase here — wait for interview_question to set it to 'question'
     socketRef.current?.emit("begin_questions");
   };
 
@@ -419,6 +415,8 @@ export default function InterviewPage() {
     socketRef.current?.emit("submit_answer", {
       answer: finalAnswer,
       isCoding: !!code,
+      language: isDSA ? language : undefined,
+      isSql: isDSA ? isSql : undefined,
     });
   }, [
     phase,
@@ -452,11 +450,7 @@ export default function InterviewPage() {
   ];
   // True when the question is ready to interact with — handles race between
   // question arriving and phase state updating
-  // Active when phase is 'question', OR question just arrived while phase lags behind
-  const isActiveQuestion =
-    phase === "question" ||
-    (!!question && phase === "starting") ||
-    (!!question && phase === "evaluating" && !evaluation);
+  const isActiveQuestion = phase === "question";
 
   return (
     <div>
@@ -844,46 +838,8 @@ export default function InterviewPage() {
             </div>
           )}
 
-          {/* ── STARTING — waiting for question to generate ── */}
-          {phase === "starting" && !roundInfo && !question && (
-            <div
-              className="card"
-              style={{ textAlign: "center", padding: "3rem" }}
-            >
-              <Loader
-                size={40}
-                className="spin"
-                color="var(--accent)"
-                style={{ margin: "0 auto 20px" }}
-              />
-              <h2 style={{ marginBottom: 8 }}>Setting up your interview…</h2>
-              <p style={{ color: "var(--text-muted)" }}>
-                Preparing your first question
-              </p>
-            </div>
-          )}
-
-          {/* ── STARTING — spinner while waiting for question after begin_questions ── */}
-          {phase === "starting" && roundInfo && !question && (
-            <div
-              className="card fade-up"
-              style={{ textAlign: "center", padding: "3rem" }}
-            >
-              <Loader
-                size={40}
-                className="spin"
-                color="var(--accent)"
-                style={{ margin: "0 auto 20px" }}
-              />
-              <h2 style={{ marginBottom: 8 }}>Preparing your question…</h2>
-              <p style={{ color: "var(--text-muted)" }}>
-                This takes 1–3 seconds
-              </p>
-            </div>
-          )}
-
           {/* ── ROUND INTRO ── */}
-          {phase === "round_intro" && roundInfo && (
+          {(phase === "starting" || phase === "round_intro") && roundInfo && (
             <div
               className="card fade-up"
               style={{ textAlign: "center", padding: "3rem" }}
@@ -1258,11 +1214,7 @@ export default function InterviewPage() {
           )}
 
           {/* ── ACTIVE QUESTION ── */}
-          {(phase === "question" ||
-            phase === "evaluating" ||
-            (question &&
-              (phase === "starting" ||
-                (phase === "evaluating" && !evaluation)))) && (
+          {(phase === "question" || phase === "evaluating") && (
             <div className="card fade-up">
               {/* Header */}
               <div
@@ -1682,6 +1634,7 @@ export default function InterviewPage() {
                       <CodeEditor
                         language={language}
                         onCodeChange={setCodeAnswer}
+                        onLanguageChange={setLanguage}
                         initialCode={null}
                         startBlank={true}
                         questionContext={question}
@@ -1747,6 +1700,7 @@ export default function InterviewPage() {
                       <CodeEditor
                         language={language}
                         onCodeChange={setCodeAnswer}
+                        onLanguageChange={setLanguage}
                         initialCode={null}
                         startBlank={true}
                         questionContext={question}
@@ -1807,6 +1761,8 @@ export default function InterviewPage() {
                           setPhase("evaluating");
                           socketRef.current?.emit("submit_answer", {
                             answer: "__SKIP__",
+                            language: isDSA ? language : undefined,
+                            isSql: isDSA ? isSql : undefined,
                           });
                         }}
                         style={{

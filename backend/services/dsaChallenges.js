@@ -11,8 +11,7 @@ export const DSA_CHALLENGES = [
     difficulty: "Easy",
     topic: "Arrays / Hash Map",
     roles: ["all"],
-    question: `Given an array of integers \`nums\` and a target integer, return the indices of the two numbers that add up to target. Exactly one solution exists.
-  Output: [1, 2]`,
+    question: `Given an array of integers \`nums\` and a target integer, return the indices of the two numbers that add up to target. Exactly one solution exists.`,
     boilerplates: {
       javascript: `function twoSum(nums, target) {\n  // your solution\n}\n\nconsole.log(twoSum([2,7,11,15], 9)); // [0,1]\nconsole.log(twoSum([3,2,4], 6));     // [1,2]`,
       python: `def two_sum(nums, target):\n    # your solution\n    pass\n\nprint(two_sum([2,7,11,15], 9)) # [0,1]\nprint(two_sum([3,2,4], 6))     # [1,2]`,
@@ -439,15 +438,7 @@ Schema: Employees(id, name, department, salary)`,
     question: `Given an array of log strings in the format "HH:MM:SS [LEVEL] message", write a function that:
 1. Counts occurrences of each log level (INFO, WARN, ERROR)
 2. Returns all ERROR messages
-3. Finds the most frequent log level
-
-Example input:
-  ["10:00:00 [INFO] Server started",
-   "10:00:01 [ERROR] DB connection failed",
-   "10:00:02 [WARN] High memory",
-   "10:00:03 [ERROR] Timeout"]
-
-Expected output: { counts: {INFO:1, WARN:1, ERROR:2}, errors: [...], mostFrequent: "ERROR" }`,
+3. Finds the most frequent log level`,
     boilerplates: {
       javascript: `function parseLogs(logs) {\n  // your solution\n  return { counts: {}, errors: [], mostFrequent: '' };\n}\n\nconst logs = [\n  "10:00:00 [INFO] Server started",\n  "10:00:01 [ERROR] DB connection failed",\n  "10:00:02 [WARN] High memory",\n  "10:00:03 [ERROR] Timeout"\n];\nconsole.log(parseLogs(logs));`,
       python: `def parse_logs(logs):\n    # your solution\n    pass\n\nlogs = [\n    "10:00:00 [INFO] Server started",\n    "10:00:01 [ERROR] DB connection failed",\n    "10:00:02 [WARN] High memory",\n    "10:00:03 [ERROR] Timeout"\n]\nprint(parse_logs(logs))`,

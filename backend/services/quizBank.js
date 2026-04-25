@@ -353,66 +353,6 @@ export const QUIZ_QUESTIONS = {
         "Memoization is an optimisation that caches function results keyed by their inputs, avoiding redundant computation.",
     },
   ],
-
-  logical_reasoning: [
-    {
-      q: "A bat and a ball cost $1.10 in total. The bat costs $1.00 more than the ball. How much does the ball cost?",
-      options: ["$0.10", "$0.05", "$0.15", "$0.20"],
-      answer: 1,
-      explanation:
-        "The ball costs $0.05. If ball = x, then bat = x + $1.00. Together: x + (x + 1.00) = 1.10 → 2x = 0.10 → x = $0.05. The intuitive answer ($0.10) is wrong — that would make the total $1.20.",
-    },
-    {
-      q: "If you have a 3-litre jug and a 5-litre jug, how do you measure exactly 4 litres of water?",
-      options: [
-        "Fill the 5L, pour into 3L, empty 3L, pour remaining into 3L, fill 5L again, top up 3L — leaves 4L in 5L",
-        "Fill both jugs and combine them",
-        "Fill the 3L twice and pour into 5L",
-        "You cannot measure exactly 4 litres with these jugs",
-      ],
-      answer: 0,
-      explanation:
-        "Fill 5L → pour into 3L (5L has 2L left) → empty 3L → pour 2L into 3L → fill 5L again → pour from 5L into 3L (needs 1L) → 5L now has 4L.",
-    },
-    {
-      q: "In a race, you overtake the person in 2nd place. What position are you now in?",
-      options: [
-        "1st place",
-        "2nd place",
-        "3rd place",
-        "It depends on the total number of runners",
-      ],
-      answer: 1,
-      explanation:
-        "You overtook 2nd place, so you are now in 2nd place — not 1st. To be in 1st you would need to overtake the person in 1st place.",
-    },
-    {
-      q: "A sorted array is rotated at some pivot. Which algorithm finds a target value in O(log n) time?",
-      options: [
-        "Linear search from both ends",
-        "Modified binary search checking which half is sorted",
-        "Sort it first then binary search — O(n log n)",
-        "Hash the array elements then lookup",
-      ],
-      answer: 1,
-      explanation:
-        "Modified binary search: at each step, one half is always sorted. Check if the target lies in the sorted half; if yes search there, else search the other half. This gives O(log n) without re-sorting.",
-    },
-    {
-      q: "You have 8 identical-looking balls. One is slightly heavier. Using a balance scale, what is the minimum number of weighings needed to guarantee finding the heavy ball?",
-      options: ["3 weighings", "2 weighings", "4 weighings", "1 weighing"],
-      answer: 1,
-      explanation:
-        "2 weighings: Split into 3-3-2. Weigh 3 vs 3. If balanced, heavy ball is in the 2 — one more weighing finds it. If unbalanced, take the heavier group of 3, weigh 1 vs 1 — if balanced the third is heavy, else the heavier one is it.",
-    },
-    {
-      q: "A function f(n) calls itself with f(n/2) and does O(1) work per call. What is the time complexity?",
-      options: ["O(n)", "O(log n)", "O(n log n)", "O(1)"],
-      answer: 1,
-      explanation:
-        "Each call halves n, so the depth of recursion is log₂(n). With O(1) work per level, total complexity is O(log n). This is the pattern of binary search.",
-    },
-  ],
 };
 
 // ── Additional topic-specific question banks ──────────────────────────────────
@@ -970,6 +910,334 @@ export const EXTENDED_QUIZ = {
     },
   ],
 
+  // ── SQL / Database ───────────────────────────────────────────────────────────
+  sql_advanced: [
+    {
+      q: "What is the difference between INNER JOIN and LEFT JOIN?",
+      options: [
+        "They are the same",
+        "INNER JOIN returns only matching rows from both tables; LEFT JOIN returns all rows from the left table plus matches from the right",
+        "LEFT JOIN returns only the left table; INNER JOIN returns both tables fully",
+        "INNER JOIN is faster; LEFT JOIN is more accurate",
+      ],
+      answer: 1,
+      explanation:
+        "INNER JOIN returns rows where the join condition matches in BOTH tables. LEFT JOIN returns ALL rows from the left table; where no match exists in the right table, NULLs are returned.",
+    },
+    {
+      q: "What does the HAVING clause do, and how is it different from WHERE?",
+      options: [
+        "HAVING filters individual rows; WHERE filters groups",
+        "HAVING filters groups after GROUP BY; WHERE filters rows before grouping",
+        "They are interchangeable",
+        "HAVING only works with COUNT; WHERE works with all aggregates",
+      ],
+      answer: 1,
+      explanation:
+        "WHERE filters rows BEFORE aggregation. HAVING filters groups AFTER GROUP BY and aggregate functions have been applied. You cannot use aggregate functions in WHERE.",
+    },
+    {
+      q: "What is a database index and what is its trade-off?",
+      options: [
+        "A copy of the whole table; trade-off is disk space",
+        "A data structure (B-tree/hash) that speeds up reads; trade-off is slower writes and extra storage",
+        "A constraint that ensures uniqueness; no trade-offs",
+        "A backup mechanism; trade-off is replication lag",
+      ],
+      answer: 1,
+      explanation:
+        "An index is a separate data structure (usually B-tree) that allows the database to find rows without scanning the whole table. Trade-off: faster SELECT but slower INSERT/UPDATE/DELETE because the index must be maintained.",
+    },
+    {
+      q: "What is the difference between DELETE, TRUNCATE, and DROP?",
+      options: [
+        "They all do the same thing",
+        "DELETE removes specific rows (can WHERE, is logged); TRUNCATE removes all rows fast (no WHERE, minimal logging); DROP removes the entire table structure",
+        "TRUNCATE is for columns; DELETE is for rows; DROP is for databases",
+        "DELETE is permanent; TRUNCATE and DROP can be rolled back",
+      ],
+      answer: 1,
+      explanation:
+        "DELETE: removes rows one by one, can use WHERE, fully logged, slower. TRUNCATE: removes all rows at once, cannot WHERE, minimally logged, faster. DROP: removes the table structure and all data entirely.",
+    },
+    {
+      q: "What is a PRIMARY KEY constraint?",
+      options: [
+        "The first column of any table",
+        "A column or combination of columns that uniquely identifies each row and cannot be NULL",
+        "A foreign key that references another table",
+        "An auto-incrementing integer column",
+      ],
+      answer: 1,
+      explanation:
+        "A PRIMARY KEY uniquely identifies each row in a table. It enforces both UNIQUE and NOT NULL constraints. A table can have only one primary key but it can span multiple columns (composite key).",
+    },
+    {
+      q: "What is a window function in SQL?",
+      options: [
+        "A function that creates a database view",
+        "A function that performs calculations across rows related to the current row without collapsing them into groups",
+        "A function that only works on the first and last rows of a result set",
+        "A function for full-text search",
+      ],
+      answer: 1,
+      explanation:
+        "Window functions (ROW_NUMBER, RANK, LAG, LEAD, SUM OVER, etc.) compute values across a set of rows related to the current row. Unlike GROUP BY, they do not collapse rows — each row keeps its identity.",
+    },
+    {
+      q: "What is database normalization?",
+      options: [
+        "Converting all text to lowercase",
+        "Organizing data to reduce redundancy and improve integrity by splitting data into related tables",
+        "Adding indexes to all columns",
+        "Encrypting sensitive columns",
+      ],
+      answer: 1,
+      explanation:
+        "Normalization organizes a database to reduce data redundancy and improve data integrity. It involves decomposing tables into smaller, well-structured tables following normal forms (1NF, 2NF, 3NF, BCNF).",
+    },
+    {
+      q: "What is the difference between a correlated and a non-correlated subquery?",
+      options: [
+        "They are the same — just different naming conventions",
+        "A non-correlated subquery runs once independently; a correlated subquery references the outer query and runs once per outer row",
+        "Correlated subqueries are faster; non-correlated are more readable",
+        "Correlated subqueries can only use SELECT; non-correlated can use any DML",
+      ],
+      answer: 1,
+      explanation:
+        "Non-correlated: the inner query executes once and its result is used by the outer query. Correlated: the inner query references columns from the outer query and executes once for each row of the outer query — can be slow.",
+    },
+  ],
+
+  // ── DevOps / Cloud ──────────────────────────────────────────────────────────
+  devops_advanced: [
+    {
+      q: "What is the difference between a Docker image and a container?",
+      options: [
+        "They are the same thing",
+        "An image is an immutable blueprint; a container is a running instance of that image",
+        "A container is stored on disk; an image runs in memory",
+        "Images are only used in production",
+      ],
+      answer: 1,
+      explanation:
+        "A Docker image is an immutable, layered filesystem snapshot. A container is a running process that uses that image as its root filesystem. You can run many containers from one image.",
+    },
+    {
+      q: "What does Kubernetes do?",
+      options: [
+        "It builds Docker images",
+        "It orchestrates containers across a cluster — scheduling, scaling, self-healing, and service discovery",
+        "It replaces Docker entirely",
+        "It manages only databases in production",
+      ],
+      answer: 1,
+      explanation:
+        "Kubernetes (K8s) automates deployment, scaling, and management of containerized applications. Key features: Pod scheduling, ReplicaSets for scaling, self-healing, Services for networking, ConfigMaps/Secrets for config.",
+    },
+    {
+      q: "What is the purpose of a CI/CD pipeline?",
+      options: [
+        "To replace manual testing",
+        "To automatically build, test, and deploy code on every commit — ensuring fast, reliable releases",
+        "To manage database migrations only",
+        "To monitor application performance",
+      ],
+      answer: 1,
+      explanation:
+        "CI (Continuous Integration) automatically builds and tests every commit. CD (Continuous Delivery/Deployment) automatically deploys passing builds. Together they reduce manual effort and catch bugs early.",
+    },
+    {
+      q: "What is Infrastructure as Code (IaC)?",
+      options: [
+        "Writing application code that runs on cloud servers",
+        "Managing and provisioning infrastructure through machine-readable configuration files (e.g. Terraform, CloudFormation)",
+        "A monitoring solution for cloud infrastructure",
+        "A programming paradigm for distributed systems",
+      ],
+      answer: 1,
+      explanation:
+        "IaC defines infrastructure (servers, networks, databases) in code files that can be version-controlled, reviewed, and automated. Tools: Terraform, Pulumi, AWS CloudFormation, Ansible.",
+    },
+    {
+      q: "What is the difference between horizontal and vertical scaling?",
+      options: [
+        "Horizontal: bigger machine; Vertical: more machines",
+        "Horizontal: add more machines (scale out); Vertical: upgrade existing machine resources (scale up)",
+        "They are the same concept with different names",
+        "Horizontal scaling is for databases only",
+      ],
+      answer: 1,
+      explanation:
+        "Vertical scaling (scale up): add CPU/RAM to existing server — has limits and requires downtime. Horizontal scaling (scale out): add more servers — better fault tolerance, preferred for cloud-native apps.",
+    },
+    {
+      q: "What is a Kubernetes Pod?",
+      options: [
+        "A virtual machine running in Kubernetes",
+        "The smallest deployable unit in Kubernetes — one or more containers that share network and storage",
+        "A Kubernetes cluster node",
+        "A type of Kubernetes service",
+      ],
+      answer: 1,
+      explanation:
+        "A Pod is the smallest unit in Kubernetes. It contains one or more containers that share the same IP address, port space, and storage volumes. Containers in a Pod communicate via localhost.",
+    },
+    {
+      q: "What is the purpose of environment variables in deployment?",
+      options: [
+        "To store application logs",
+        "To externalize configuration (API keys, database URLs, feature flags) so the same image runs in dev/staging/prod without code changes",
+        "To define the programming language runtime",
+        "To configure the operating system kernel",
+      ],
+      answer: 1,
+      explanation:
+        "Environment variables separate configuration from code. The same Docker image can connect to different databases or use different API keys depending on the environment by changing env vars — not rebuilding the image.",
+    },
+    {
+      q: "What does a reverse proxy do?",
+      options: [
+        "It connects clients directly to backend servers",
+        "It sits in front of backend servers, forwards client requests, handles SSL termination, load balancing, and caching",
+        "It prevents backend servers from making outbound requests",
+        "It encrypts database connections only",
+      ],
+      answer: 1,
+      explanation:
+        "A reverse proxy (Nginx, Caddy, AWS ALB) sits between clients and backend servers. It handles SSL termination, load balancing, caching, compression, and hides backend server details from clients.",
+    },
+  ],
+
+  // ── Python (extended) ───────────────────────────────────────────────────────
+  python_extended: [
+    {
+      q: "What is the difference between a list and a tuple in Python?",
+      options: [
+        "Lists are faster; tuples use less memory",
+        "Lists are mutable (can change); tuples are immutable (cannot change after creation)",
+        "Tuples can hold mixed types; lists cannot",
+        "Lists are ordered; tuples are unordered",
+      ],
+      answer: 1,
+      explanation:
+        "Lists [] are mutable — you can append, remove, or change elements. Tuples () are immutable — once created, elements cannot be changed. Tuples are slightly faster and used for fixed data.",
+    },
+    {
+      q: "What are Python decorators?",
+      options: [
+        "Comments that describe functions",
+        "Functions that wrap another function to extend its behaviour without modifying it",
+        "A type of class inheritance",
+        "Python's version of interfaces",
+      ],
+      answer: 1,
+      explanation:
+        "A decorator is a function that takes another function as an argument, adds some behaviour, and returns a new function. Used with @syntax. Common examples: @staticmethod, @property, @app.route in Flask.",
+    },
+    {
+      q: "What is the GIL (Global Interpreter Lock) in Python?",
+      options: [
+        "A security mechanism that locks Python files",
+        "A mutex that allows only one thread to execute Python bytecode at a time — limits true parallelism in CPU-bound threads",
+        "A garbage collection algorithm",
+        "A package manager lock file",
+      ],
+      answer: 1,
+      explanation:
+        "The GIL is a lock in CPython that ensures only one thread runs Python code at a time. It prevents CPU-bound multithreading from using multiple cores. For CPU parallelism, use multiprocessing instead.",
+    },
+    {
+      q: "What is the difference between `__str__` and `__repr__` in Python?",
+      options: [
+        "They are identical",
+        "__str__ is a human-readable string for end users; __repr__ is an unambiguous representation for developers/debugging",
+        "__repr__ is for printing; __str__ is for logging",
+        "__str__ works on all objects; __repr__ only works on custom classes",
+      ],
+      answer: 1,
+      explanation:
+        "__str__ is called by print() and str() — meant to be readable. __repr__ is called by repr() and in the REPL — should ideally return a string that could recreate the object. If __str__ is not defined, __repr__ is used.",
+    },
+  ],
+
+  // ── General CS fundamentals (replaces logical_reasoning) ───────────────────
+  cs_fundamentals: [
+    {
+      q: "What is the difference between TCP and UDP?",
+      options: [
+        "TCP is faster; UDP is more reliable",
+        "TCP is connection-oriented with guaranteed delivery and ordering; UDP is connectionless and faster but with no delivery guarantee",
+        "They are the same protocol with different names",
+        "UDP is used for web; TCP is used for email only",
+      ],
+      answer: 1,
+      explanation:
+        "TCP provides reliable, ordered, error-checked delivery via a connection handshake. UDP is lightweight, connectionless, and faster — used for video streaming, DNS, and gaming where some packet loss is acceptable.",
+    },
+    {
+      q: "What is the difference between authentication and authorization?",
+      options: [
+        "They are the same thing",
+        "Authentication verifies who you are (identity); authorization determines what you are allowed to do (permissions)",
+        "Authorization happens before authentication",
+        "Authentication is for APIs; authorization is for web apps only",
+      ],
+      answer: 1,
+      explanation:
+        'Authentication: "Who are you?" — verifying identity via passwords, tokens, biometrics. Authorization: "What can you do?" — checking permissions after identity is confirmed. Auth (authn) before authz.',
+    },
+    {
+      q: "What is a deadlock in concurrent systems?",
+      options: [
+        "When a program runs too slowly",
+        "When two or more processes are each waiting for the other to release a resource, causing all to be stuck indefinitely",
+        "When a database query takes too long",
+        "When a server runs out of memory",
+      ],
+      answer: 1,
+      explanation:
+        "Deadlock occurs when process A holds resource 1 and waits for resource 2, while process B holds resource 2 and waits for resource 1. Neither can proceed. Prevention strategies: resource ordering, timeouts, deadlock detection.",
+    },
+    {
+      q: "What is the difference between SQL and NoSQL databases?",
+      options: [
+        "SQL is older; NoSQL is newer — otherwise they are equivalent",
+        "SQL uses structured tables with fixed schemas and ACID transactions; NoSQL uses flexible schemas (documents, key-value, graphs) optimized for scale and flexibility",
+        "NoSQL is only for large companies; SQL is for small projects",
+        "SQL databases cannot scale; NoSQL databases cannot do joins",
+      ],
+      answer: 1,
+      explanation:
+        "SQL: relational, fixed schema, ACID transactions, great for complex queries (PostgreSQL, MySQL). NoSQL: flexible schema, designed for horizontal scale (MongoDB, Redis, Cassandra). Choice depends on data structure and consistency needs.",
+    },
+    {
+      q: "What is caching and what problem does it solve?",
+      options: [
+        "Caching permanently stores data to replace databases",
+        "Caching stores frequently accessed data in fast memory (RAM) to reduce latency and backend load",
+        "Caching compresses data to save disk space",
+        "Caching is only used for static files like images",
+      ],
+      answer: 1,
+      explanation:
+        "Caching stores the result of expensive operations (DB queries, API calls, computations) in fast storage (Redis, Memcached, browser cache). Reduces response time and backend load. Key challenge: cache invalidation — knowing when to update stale data.",
+    },
+    {
+      q: "What is an API and what does REST mean?",
+      options: [
+        "API is a programming language; REST is a database",
+        "API (Application Programming Interface) defines how software communicates; REST (Representational State Transfer) is an architectural style for APIs using HTTP methods and stateless requests",
+        "REST is a type of API that only works with JSON",
+        "APIs are only for mobile apps; REST is only for web browsers",
+      ],
+      answer: 1,
+      explanation:
+        "An API is a contract defining how systems communicate. REST is an architectural style: stateless, uses HTTP verbs (GET/POST/PUT/DELETE), resources identified by URLs, typically returns JSON. Not a protocol — a set of constraints.",
+    },
+  ],
+
   data_ml: [
     {
       q: "What is the difference between supervised and unsupervised learning?",
@@ -1011,9 +1279,9 @@ export const EXTENDED_QUIZ = {
 };
 
 /**
- * Pick quiz questions matched to the candidate's role and skills.
- * Uses seeded shuffle so the same candidate always gets the same set
- * but different candidates get different subsets.
+ * Pick quiz questions strictly matched to the candidate's role and skills.
+ * No puzzles, riddles, or logical reasoning — only technical questions
+ * directly relevant to the job role.
  */
 export function pickQuizQuestions(
   skills = [],
@@ -1021,289 +1289,204 @@ export function pickQuizQuestions(
   jobRole = "",
   candidateName = "",
 ) {
-  const skillsLower = skills.map((s) => s.toLowerCase());
+  const sl = skills.map((s) => s.toLowerCase());
   const role = (jobRole || "").toLowerCase();
-  const allQuestions = [];
-  const used = new Set();
+  const all = [];
+  const seen = new Set();
 
-  const addFrom = (pool, topic) => {
-    for (const q of pool) {
-      if (!used.has(q.q)) {
-        allQuestions.push({ ...q, topic });
-        used.add(q.q);
+  const add = (pool, topic) => {
+    for (const q of pool || []) {
+      if (!seen.has(q.q)) {
+        all.push({ ...q, topic });
+        seen.add(q.q);
       }
     }
   };
 
-  // ── Detect role category ────────────────────────────────────────
-  const isFrontend =
-    role.includes("frontend") ||
-    role.includes("front-end") ||
-    role.includes("ui") ||
-    role.includes("react") ||
-    role.includes("vue") ||
-    role.includes("angular");
-  const isBackend =
-    role.includes("backend") ||
-    role.includes("back-end") ||
-    role.includes("api") ||
-    role.includes("server") ||
-    role.includes("microservice");
-  const isJava = role.includes("java") && !role.includes("javascript");
-  const isDotNet =
-    role.includes(".net") ||
-    role.includes("dotnet") ||
-    role.includes("c#") ||
-    role.includes("csharp") ||
-    role.includes("asp.net") ||
-    role.includes("blazor");
-  const isPython =
-    role.includes("python") ||
-    role.includes("django") ||
-    role.includes("flask") ||
-    role.includes("fastapi");
-  const isML =
-    role.includes("ml") ||
-    role.includes("machine learning") ||
-    role.includes("data scientist") ||
-    role.includes("ai engineer") ||
-    role.includes("deep learning");
-  const isData =
-    role.includes("data engineer") ||
-    role.includes("data analyst") ||
-    role.includes("analytics");
-  const isDevOps =
-    role.includes("devops") ||
-    role.includes("cloud") ||
-    role.includes("sre") ||
-    role.includes("infrastructure") ||
-    role.includes("platform engineer");
-  const isMobile =
-    role.includes("mobile") ||
-    role.includes("android") ||
-    role.includes("ios") ||
-    role.includes("flutter") ||
-    role.includes("react native") ||
-    role.includes("kotlin") ||
-    role.includes("swift");
-  const isFullStack =
-    role.includes("full") ||
-    role.includes("fullstack") ||
-    role.includes("full-stack");
-  const isSoftware =
-    role.includes("software") ||
-    role.includes("engineer") ||
-    role.includes("developer");
+  // ── Role detection ──────────────────────────────────────────────
+  const is = (...words) => words.some((w) => role.includes(w));
+  const has = (...words) => words.some((w) => sl.some((s) => s.includes(w)));
 
-  // Also detect from skills
-  const hasJava = skillsLower.some(
-    (s) =>
-      s === "java" ||
-      s.includes("spring") ||
-      s.includes("maven") ||
-      s.includes("gradle"),
+  const isFrontend = is(
+    "frontend",
+    "front-end",
+    "ui developer",
+    "react developer",
+    "vue",
+    "angular",
+    "web developer",
   );
-  const hasDotNet = skillsLower.some(
-    (s) =>
-      s.includes("c#") ||
-      s.includes(".net") ||
-      s.includes("asp.net") ||
-      s.includes("entity framework") ||
-      s.includes("blazor"),
+  const isBackend = is(
+    "backend",
+    "back-end",
+    "api developer",
+    "server",
+    "microservice",
+    "node developer",
   );
-  const hasPython = skillsLower.some(
-    (s) => s.includes("python") || s.includes("django") || s.includes("flask"),
-  );
-  const hasReactSkill = skillsLower.some((s) =>
-    ["react", "next.js", "vue", "angular", "svelte"].includes(s),
-  );
-  const hasJS = skillsLower.some((s) =>
-    ["javascript", "typescript", "node.js", "express", "nestjs"].includes(s),
-  );
-  const hasSQL = skillsLower.some(
-    (s) =>
-      s.includes("sql") ||
-      s.includes("postgres") ||
-      s.includes("mysql") ||
-      s.includes("oracle"),
-  );
-  const hasDevOps = skillsLower.some((s) =>
-    [
+  const isFullStack = is("full stack", "fullstack", "full-stack");
+  const isJava =
+    (is("java") && !is("javascript")) || has("spring", "maven", "hibernate");
+  const isDotNet =
+    is(".net", "dotnet", "c# developer", "asp.net", "blazor") ||
+    has("c#", ".net", "entity framework", "blazor");
+  const isPython =
+    is("python", "django", "flask", "fastapi") ||
+    has("python", "django", "flask", "fastapi");
+  const isML =
+    is(
+      "machine learning",
+      "ml engineer",
+      "data scientist",
+      "ai engineer",
+      "deep learning",
+    ) || has("tensorflow", "pytorch", "scikit", "keras");
+  const isData =
+    is("data engineer", "data analyst", "analytics engineer", "etl") ||
+    has("spark", "airflow", "dbt", "bigquery", "redshift", "snowflake");
+  const isSQL =
+    is(
+      "sql developer",
+      "database developer",
+      "dba",
+      "database administrator",
+    ) || has("postgresql", "mysql", "oracle", "sql server", "sqlite");
+  const isDevOps =
+    is(
+      "devops",
+      "cloud engineer",
+      "sre",
+      "platform engineer",
+      "infrastructure",
+    ) ||
+    has(
       "docker",
       "kubernetes",
-      "aws",
-      "azure",
-      "gcp",
       "terraform",
       "ansible",
       "jenkins",
-      "github actions",
-      "ci/cd",
-    ].includes(s),
-  );
-  const hasMobile = skillsLower.some((s) =>
-    [
-      "android",
-      "ios",
-      "flutter",
-      "react native",
-      "kotlin",
-      "swift",
-      "jetpack",
-      "swiftui",
-    ].includes(s),
-  );
-
-  // ── Load role-specific questions FIRST (highest priority) ──────
-  if (isJava || hasJava) {
-    addFrom(EXTENDED_QUIZ.java_advanced, "java");
-    addFrom(EXTENDED_QUIZ.backend_advanced, "backend");
-    addFrom(EXTENDED_QUIZ.system_design, "system design");
-  }
-  if (isDotNet || hasDotNet) {
-    addFrom(EXTENDED_QUIZ.dotnet_advanced, ".net/c#");
-    addFrom(EXTENDED_QUIZ.backend_advanced, "backend");
-    addFrom(EXTENDED_QUIZ.system_design, "system design");
-  }
-  if (isPython || hasPython) {
-    addFrom(EXTENDED_QUIZ.python_advanced, "python");
-    addFrom(EXTENDED_QUIZ.backend_advanced, "backend");
-  }
-  if (isML) {
-    addFrom(EXTENDED_QUIZ.data_ml, "data/ml");
-    addFrom(EXTENDED_QUIZ.python_advanced, "python");
-  }
-  if (isData) {
-    addFrom(EXTENDED_QUIZ.data_ml, "data/ml");
-    addFrom(EXTENDED_QUIZ.backend_advanced, "backend");
-  }
-  if (isDevOps || hasDevOps) {
-    addFrom(EXTENDED_QUIZ.devops_cloud, "devops/cloud");
-    addFrom(EXTENDED_QUIZ.backend_advanced, "backend");
-    addFrom(EXTENDED_QUIZ.system_design, "system design");
-  }
-  if (isMobile || hasMobile) {
-    addFrom(EXTENDED_QUIZ.mobile_advanced, "mobile");
-    addFrom(EXTENDED_QUIZ.system_design, "system design");
-  }
-  if (isFrontend && !isJava && !isDotNet) {
-    addFrom(EXTENDED_QUIZ.frontend_advanced, "frontend");
-    addFrom(EXTENDED_QUIZ.system_design, "system design");
-  }
-  if (isBackend && !isJava && !isDotNet && !isPython) {
-    addFrom(EXTENDED_QUIZ.backend_advanced, "backend");
-    addFrom(EXTENDED_QUIZ.system_design, "system design");
-  }
-  if (isFullStack) {
-    addFrom(EXTENDED_QUIZ.backend_advanced, "backend");
-    addFrom(EXTENDED_QUIZ.system_design, "system design");
-    if (!isJava && !isDotNet)
-      addFrom(EXTENDED_QUIZ.frontend_advanced, "frontend");
-  }
-  // Always add system design for any engineering role
-  if (
-    isSoftware &&
+      "aws",
+      "azure",
+      "gcp",
+    );
+  const isMobile =
+    is("mobile", "android", "ios", "flutter", "react native") ||
+    has("android", "ios", "flutter", "swift", "kotlin", "react native");
+  const isGeneral =
+    is("software engineer", "software developer", "engineer", "developer") &&
+    !isFrontend &&
+    !isBackend &&
     !isJava &&
     !isDotNet &&
     !isPython &&
     !isML &&
+    !isData &&
+    !isSQL &&
     !isDevOps &&
     !isMobile &&
-    !isFrontend &&
-    !isBackend &&
-    !isFullStack
-  ) {
-    addFrom(EXTENDED_QUIZ.backend_advanced, "backend");
-    addFrom(EXTENDED_QUIZ.system_design, "system design");
+    !isFullStack;
+
+  // ── Load role-specific banks FIRST (most relevant) ──────────────
+
+  if (isJava) {
+    add(EXTENDED_QUIZ.java_advanced, "java");
+    add(EXTENDED_QUIZ.backend_advanced, "backend");
+  }
+  if (isDotNet) {
+    add(EXTENDED_QUIZ.dotnet_advanced, ".net/c#");
+    add(EXTENDED_QUIZ.backend_advanced, "backend");
+  }
+  if (isPython) {
+    add(EXTENDED_QUIZ.python_advanced, "python");
+    add(EXTENDED_QUIZ.python_extended, "python");
+    add(EXTENDED_QUIZ.backend_advanced, "backend");
+  }
+  if (isML) {
+    add(EXTENDED_QUIZ.data_ml, "data/ml");
+    add(EXTENDED_QUIZ.python_advanced, "python");
+    add(EXTENDED_QUIZ.python_extended, "python");
+  }
+  if (isData) {
+    add(EXTENDED_QUIZ.data_ml, "data/ml");
+    add(EXTENDED_QUIZ.sql_advanced, "sql");
+    add(EXTENDED_QUIZ.backend_advanced, "backend");
+  }
+  if (isSQL) {
+    add(EXTENDED_QUIZ.sql_advanced, "sql");
+    add(EXTENDED_QUIZ.backend_advanced, "backend");
+  }
+  if (isDevOps) {
+    add(EXTENDED_QUIZ.devops_advanced, "devops");
+    add(EXTENDED_QUIZ.devops_cloud, "devops");
+    add(EXTENDED_QUIZ.system_design, "system design");
+  }
+  if (isMobile) {
+    add(EXTENDED_QUIZ.mobile_advanced, "mobile");
+    add(EXTENDED_QUIZ.system_design, "system design");
+  }
+  if (isFrontend) {
+    add(EXTENDED_QUIZ.frontend_advanced, "frontend");
+    add(EXTENDED_QUIZ.system_design, "system design");
+  }
+  if (isBackend) {
+    add(EXTENDED_QUIZ.backend_advanced, "backend");
+    add(EXTENDED_QUIZ.system_design, "system design");
+  }
+  if (isFullStack) {
+    add(EXTENDED_QUIZ.backend_advanced, "backend");
+    add(EXTENDED_QUIZ.frontend_advanced, "frontend");
+    add(EXTENDED_QUIZ.system_design, "system design");
   }
 
-  // ── Fallback: add system design for everyone ────────────────────
-  addFrom(EXTENDED_QUIZ.system_design, "system design");
+  // Always add system design for any engineering role
+  add(EXTENDED_QUIZ.system_design, "system design");
 
-  // ── Skill-matched base bank questions (language-specific) ────────
-  // Only add JS/React questions if the role/skills actually involve them
-  const addJS =
-    !isJava &&
-    !isDotNet &&
-    (hasJS ||
-      hasReactSkill ||
-      isFrontend ||
-      isFullStack ||
-      (!isJava && !isDotNet && !isPython && !isML && !isDevOps && !isMobile));
-  const addReact = !isJava && !isDotNet && (hasReactSkill || isFrontend);
-  const addPyBase = hasPython || isPython || isML || isData;
-  const addSQLBase = hasSQL || isData || isBackend || isJava || isDotNet;
+  // ── Add language-specific base questions only if relevant ────────
+  const wantJS =
+    isFrontend ||
+    isFullStack ||
+    isBackend ||
+    has("javascript", "typescript", "node.js", "nestjs");
+  const wantReact = isFrontend || isFullStack || has("react", "next.js");
+  const wantSQL =
+    isSQL ||
+    isData ||
+    isBackend ||
+    isFullStack ||
+    isJava ||
+    isDotNet ||
+    has("sql", "postgresql", "mysql", "oracle");
+  const wantPy = isPython || isML || isData || has("python");
 
-  if (addReact) {
-    for (const q of QUIZ_QUESTIONS.react || []) {
-      if (!used.has(q.q)) {
-        allQuestions.push({ ...q, topic: "react" });
-        used.add(q.q);
-      }
-    }
-  }
-  if (addJS) {
-    for (const q of QUIZ_QUESTIONS.javascript || []) {
-      if (!used.has(q.q)) {
-        allQuestions.push({ ...q, topic: "javascript" });
-        used.add(q.q);
-      }
-    }
-  }
-  if (addPyBase) {
-    for (const q of QUIZ_QUESTIONS.python || []) {
-      if (!used.has(q.q)) {
-        allQuestions.push({ ...q, topic: "python" });
-        used.add(q.q);
-      }
-    }
-  }
-  if (addSQLBase) {
-    for (const q of QUIZ_QUESTIONS.sql || []) {
-      if (!used.has(q.q)) {
-        allQuestions.push({ ...q, topic: "sql" });
-        used.add(q.q);
-      }
-    }
+  if (wantReact) add(QUIZ_QUESTIONS.react, "react");
+  if (wantJS) add(QUIZ_QUESTIONS.javascript, "javascript");
+  if (wantPy) add(QUIZ_QUESTIONS.python, "python");
+  if (wantSQL) add(EXTENDED_QUIZ.sql_advanced, "sql");
+
+  // ── CS fundamentals — relevant to ALL roles ──────────────────────
+  add(EXTENDED_QUIZ.cs_fundamentals, "fundamentals");
+  add(QUIZ_QUESTIONS.general, "general");
+
+  // Fallback: if still not enough questions, add everything
+  if (all.length < count) {
+    add(EXTENDED_QUIZ.backend_advanced, "backend");
+    add(EXTENDED_QUIZ.frontend_advanced, "frontend");
+    add(EXTENDED_QUIZ.system_design, "system design");
   }
 
-  // ── Always add logical reasoning (2-3 questions for everyone) ────
-  for (const q of QUIZ_QUESTIONS.logical_reasoning || []) {
-    if (!used.has(q.q)) {
-      allQuestions.push({ ...q, topic: "logical_reasoning" });
-      used.add(q.q);
-    }
-  }
-  for (const q of QUIZ_QUESTIONS.general || []) {
-    if (!used.has(q.q)) {
-      allQuestions.push({ ...q, topic: "general" });
-      used.add(q.q);
-    }
-  }
-
-  // ── Seeded shuffle ────────────────────────────────────────────────
+  // ── Seeded shuffle — same candidate always gets same set ─────────
   const seed = (candidateName + new Date().toDateString())
     .split("")
     .reduce((a, c) => a + c.charCodeAt(0), 0);
-  const seededRandom = (i) => {
+  const rand = (i) => {
     const x = Math.sin(seed + i) * 10000;
     return x - Math.floor(x);
   };
 
-  for (let i = allQuestions.length - 1; i > 0; i--) {
-    const j = Math.floor(seededRandom(i) * (i + 1));
-    [allQuestions[i], allQuestions[j]] = [allQuestions[j], allQuestions[i]];
+  for (let i = all.length - 1; i > 0; i--) {
+    const j = Math.floor(rand(i) * (i + 1));
+    [all[i], all[j]] = [all[j], all[i]];
   }
 
-  // ── Guarantee at least 2 logic questions in final set ─────────────
-  const logicQs = allQuestions.filter((q) => q.topic === "logical_reasoning");
-  const others = allQuestions.filter((q) => q.topic !== "logical_reasoning");
-  const combined = [...logicQs.slice(0, 2), ...others].slice(0, count);
-
-  for (let i = combined.length - 1; i > 0; i--) {
-    const j = Math.floor(seededRandom(i + 100) * (i + 1));
-    [combined[i], combined[j]] = [combined[j], combined[i]];
-  }
-
-  return combined.slice(0, count);
+  return all.slice(0, count);
 }

@@ -365,6 +365,8 @@ export async function evaluateAnswer({
   jobRole,
   type = "resume",
   quizMeta = null,
+  language = null,
+  isSql = false,
 }) {
   const { general } = getAIModels();
 
@@ -386,22 +388,61 @@ export async function evaluateAnswer({
     };
   }
 
-  const codingNote =
-    type === "dsa"
-      ? "This was a DSA coding challenge. Evaluate: correctness, time/space complexity, code quality, edge cases."
-      : type === "followup"
-        ? "This was a follow-up question. Evaluate depth and specificity of the answer."
-        : "";
+  // Build coding context note
+  let codingNote = "";
+  if (type === "dsa") {
+    if (isSql) {
+      codingNote = `This was a SQL coding challenge. Evaluate the SQL query for:
+- Correctness: does it produce the right result? (most important)
+- SQL quality: appropriate use of JOINs, aggregates, window functions, subqueries
+- Efficiency: avoids unnecessary full scans or redundant operations
+- Edge cases: handles NULLs, ties, empty results correctly
 
-  const system = `You are an expert ${jobRole} interviewer. ${codingNote}
-Respond ONLY with valid JSON:
+SCORING GUIDE (use the FULL range):
+10 = Correct, efficient, handles edge cases, clean SQL
+8-9 = Correct with minor style issues or missing one edge case
+6-7 = Mostly correct but missing important SQL features or has minor bugs
+4-5 = Partially correct — right idea but significant errors
+1-3 = Wrong approach or fundamentally incorrect
+0 = Blank/skipped`;
+    } else {
+      const langNote = language
+        ? `The answer is written in ${language}. Do NOT penalise for language choice.`
+        : "";
+      codingNote = `This was a DSA/coding challenge. ${langNote}
+
+Evaluate on:
+- Correctness: does the logic solve the problem correctly? (most important)
+- Time/space complexity: is it efficient?
+- Edge cases: handles empty input, duplicates, negatives, boundaries
+- Code quality: readable, well-structured
+
+SCORING GUIDE (use the FULL range — do NOT cluster around 8-9):
+10 = Fully correct, optimal complexity, handles edge cases, clean code
+9  = Correct and efficient, very minor style issues only
+8  = Correct but suboptimal complexity (e.g. O(n²) when O(n) possible)
+6-7 = Mostly correct with a small bug or missing edge cases
+4-5 = Partially correct — right idea but significant logic errors
+1-3 = Wrong approach or mostly incorrect
+0  = Blank/skipped
+
+If the solution is fully correct and works, give 9 or 10. Do NOT round down correct solutions.`;
+    }
+  } else if (type === "followup") {
+    codingNote =
+      "This was a follow-up question. Evaluate depth and specificity of the answer.";
+  }
+
+  const system = `You are an expert ${jobRole} technical interviewer evaluating a candidate's answer. ${codingNote}
+
+Respond ONLY with valid JSON — no explanation outside the JSON:
 {
-  "score": <1-10>,
-  "feedback": "<one clear sentence>",
-  "strengths": "<what was good>",
-  "improvements": "<specific improvement>",
-  "needsFollowUp": <true ONLY for resume/experience questions where answer was vague — false for all DSA and quiz>,
-  "followUpReason": "<if needsFollowUp: what specific aspect to probe deeper>"
+  "score": <integer 1-10, use the full range as described above>,
+  "feedback": "<one clear honest sentence about the answer quality>",
+  "strengths": "<what was done well>",
+  "improvements": "<specific thing to improve, or empty string if score is 10>",
+  "needsFollowUp": <true ONLY for resume/experience questions where answer was vague — always false for DSA/SQL/quiz>,
+  "followUpReason": ""
 }`;
 
   try {
@@ -409,7 +450,10 @@ Respond ONLY with valid JSON:
       model: general,
       messages: [
         { role: "system", content: system },
-        { role: "user", content: `Question: ${question}\n\nAnswer: ${answer}` },
+        {
+          role: "user",
+          content: `Question: ${question}\n\nAnswer:\n${answer}`,
+        },
       ],
       max_tokens: 300,
       temperature: 0.3,

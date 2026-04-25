@@ -234,7 +234,10 @@ export function registerSocketHandlers(io) {
         else if (session.round === 2)
           await handleRound2Answer(socket, session, effectiveAnswer);
         else if (session.round === 3)
-          await handleRound3Answer(socket, session, effectiveAnswer);
+          await handleRound3Answer(socket, session, effectiveAnswer, {
+            language: data.language || null,
+            isSql: data.isSql ?? false,
+          });
       } catch (err) {
         console.error("[Socket] submit_answer:", err);
         socket.emit("error", { message: "Failed to process answer." });
@@ -580,6 +583,8 @@ function sendRound3Question(socket) {
     answer: null,
     score: null,
     qNum: session.questionNumber,
+    language: preferredLang,
+    isSql: isSqlQuestion,
   });
   persistQ(session, q.topic, q.question);
 
@@ -602,8 +607,13 @@ function sendRound3Question(socket) {
   });
 }
 
-async function handleRound3Answer(socket, session, answer) {
+async function handleRound3Answer(socket, session, answer, meta = {}) {
   const currentQA = session.r3QALog[session.r3QALog.length - 1];
+  // Use language sent by frontend (what the user actually wrote in), fallback to what was set at question time
+  const lang = meta.language || currentQA.language || null;
+  const isSql = meta.isSql ?? currentQA.isSql ?? false;
+  if (lang) currentQA.language = lang;
+
   const ev = isBlankOrOffTopic(answer)
     ? zeroScore(answer)
     : await evaluateAnswer({
@@ -611,6 +621,8 @@ async function handleRound3Answer(socket, session, answer) {
         answer,
         jobRole: session.jobRole,
         type: "dsa",
+        language: lang,
+        isSql,
       });
   currentQA.answer = answer;
   currentQA.score = ev.score;
