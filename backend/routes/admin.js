@@ -108,6 +108,100 @@ router.get("/users/:id", requireAdmin, async (req, res) => {
   }
 });
 
+// DELETE /api/admin/users/:id — permanently delete a user and ALL their data
+router.delete("/users/:id", requireAdmin, async (req, res) => {
+  const { id } = req.params;
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    // Verify user exists
+    const check = await client.query(
+      "SELECT id, name, email FROM users WHERE id=$1",
+      [id],
+    );
+    if (!check.rows.length) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "User not found." });
+    }
+    const user = check.rows[0];
+
+    // Get recording URLs before deletion so we can remove files from disk
+    const recResult = await client.query(
+      `SELECT recording_url FROM interview_sessions
+       WHERE user_id=$1 AND recording_url IS NOT NULL`,
+      [id],
+    );
+    const recordingPaths = recResult.rows
+      .map((r) => r.recording_url)
+      .filter(Boolean);
+
+    // Delete child data explicitly (belt + suspenders alongside CASCADE)
+    await client.query(
+      `
+      DELETE FROM interview_feedback
+      WHERE session_id IN (SELECT id FROM interview_sessions WHERE user_id=$1)
+    `,
+      [id],
+    );
+
+    await client.query(
+      `
+      DELETE FROM interview_qa
+      WHERE session_id IN (SELECT id FROM interview_sessions WHERE user_id=$1)
+    `,
+      [id],
+    );
+
+    await client.query("DELETE FROM interview_sessions WHERE user_id=$1", [id]);
+    await client.query("DELETE FROM resumes WHERE user_id=$1", [id]);
+    await client.query("DELETE FROM users WHERE id=$1", [id]);
+
+    await client.query("COMMIT");
+
+    // Delete recording files from disk (after successful DB commit)
+    let deletedFiles = 0;
+    for (const recPath of recordingPaths) {
+      try {
+        // recPath may be a URL like /recordings/recording-xxx.webm
+        // or a filesystem path
+        const filename = recPath.split("/").pop();
+        const filePath = path.join(
+          process.cwd(),
+          "uploads",
+          "recordings",
+          filename,
+        );
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+          deletedFiles++;
+        }
+      } catch (fileErr) {
+        console.warn(
+          `[admin] Could not delete recording file: ${fileErr.message}`,
+        );
+      }
+    }
+
+    console.log(
+      `[admin] Deleted user ${user.name} (${user.email}) — id: ${id}, recordings deleted: ${deletedFiles}`,
+    );
+    res.json({
+      success: true,
+      message: `User "${user.name}" and all their data deleted successfully.`,
+      deletedRecordings: deletedFiles,
+    });
+  } catch (err) {
+    await client.query("ROLLBACK").catch(() => {});
+    console.error("[admin] delete user error:", err);
+    res
+      .status(500)
+      .json({ error: "Failed to delete user. All changes rolled back." });
+  } finally {
+    client.release();
+  }
+});
+
 // GET /api/admin/sessions — all sessions
 router.get("/sessions", requireAdmin, async (req, res) => {
   try {

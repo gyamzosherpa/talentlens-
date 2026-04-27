@@ -165,21 +165,43 @@ export async function generateEmbedding(text) {
 
 export async function storeResume({ userId, rawText, parsedResume, filename }) {
   const cleanText = sanitizeText(rawText);
-  const embedding = await generateEmbedding(cleanText);
-  const embeddingStr = embedding ? `[${embedding.join(",")}]` : null;
 
-  const result = await pool.query(
-    `INSERT INTO resumes (user_id, raw_text, parsed_data, embedding, filename)
-     VALUES ($1, $2, $3, $4::vector, $5)
-     RETURNING id, created_at`,
-    [
-      userId,
-      cleanText,
-      JSON.stringify(parsedResume),
-      embeddingStr,
-      filename || null,
-    ],
-  );
+  // Generate embedding — completely optional, interview works without it
+  let embeddingStr = null;
+  try {
+    const embedding = await generateEmbedding(cleanText);
+    if (embedding && Array.isArray(embedding) && embedding.length > 0) {
+      embeddingStr = `[${embedding.join(",")}]`;
+    }
+  } catch (embErr) {
+    console.warn("[storeResume] Embedding skipped:", embErr.message);
+  }
+
+  // Use two separate queries to avoid any vector type casting issues
+  // when embedding is null — pgvector is strict about null::vector
+  let result;
+  if (embeddingStr) {
+    result = await pool.query(
+      `INSERT INTO resumes (user_id, raw_text, parsed_data, embedding, filename)
+       VALUES ($1, $2, $3, $4::vector, $5)
+       RETURNING id, created_at`,
+      [
+        userId,
+        cleanText,
+        JSON.stringify(parsedResume),
+        embeddingStr,
+        filename || null,
+      ],
+    );
+  } else {
+    // No embedding — insert without it (column stays NULL)
+    result = await pool.query(
+      `INSERT INTO resumes (user_id, raw_text, parsed_data, filename)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, created_at`,
+      [userId, cleanText, JSON.stringify(parsedResume), filename || null],
+    );
+  }
 
   return result.rows[0];
 }

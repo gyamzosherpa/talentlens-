@@ -761,6 +761,32 @@ export default function AdminPage() {
   const [feedbackError, setFeedbackError] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [deleteUserId, setDeleteUserId] = useState(null); // id of user pending delete confirm
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const handleDeleteUser = async (userId, userName) => {
+    if (
+      !window.confirm(
+        `⚠️ Permanently delete "${userName}" and ALL their resumes, sessions, and data?\n\nThis cannot be undone.`,
+      )
+    )
+      return;
+    setDeleteLoading(true);
+    try {
+      await api.delete(`/admin/users/${userId}`, {
+        headers: { "x-admin-key": adminKey },
+      });
+      setUsers((prev) => prev.filter((u) => u.id !== userId));
+      if (selectedUser === userId) setSelectedUser(null);
+      alert("User deleted successfully.");
+    } catch (err) {
+      alert(
+        "Failed to delete user: " + (err.response?.data?.error || err.message),
+      );
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
   const [selectedSession, setSelectedSession] = useState(null);
 
   const loadAll = async (key) => {
@@ -1083,6 +1109,40 @@ export default function AdminPage() {
                               </span>
                             )}
                             <ChevronRight size={14} color="var(--text-muted)" />
+                            {/* Delete button — stop propagation so it doesn't open the user detail */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteUser(u.id, u.name);
+                              }}
+                              disabled={deleteLoading}
+                              title={`Delete ${u.name}`}
+                              style={{
+                                marginLeft: 4,
+                                padding: "5px 8px",
+                                borderRadius: 7,
+                                background: "rgba(239,68,68,0.1)",
+                                border: "1px solid rgba(239,68,68,0.3)",
+                                color: "#ef4444",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 4,
+                                fontSize: 12,
+                                fontWeight: 600,
+                                transition: "all 0.15s",
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background =
+                                  "rgba(239,68,68,0.25)";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background =
+                                  "rgba(239,68,68,0.1)";
+                              }}
+                            >
+                              🗑 Delete
+                            </button>
                           </div>
                         </div>
                       ))}

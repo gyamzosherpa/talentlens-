@@ -93,42 +93,64 @@ router.post(
       if (!req.file)
         return res.status(400).json({ error: "No file uploaded." });
 
-      const rawText = extractText(req.file.path, req.file.originalname);
+      // Extract text from the file
+      let rawText = "";
+      try {
+        rawText = extractText(req.file.path, req.file.originalname);
+      } catch (extractErr) {
+        console.error("[Resume] Text extraction error:", extractErr.message);
+      }
 
-      if (!rawText?.trim() || rawText.length < 50) {
+      if (!rawText?.trim() || rawText.trim().length < 30) {
         return res.status(400).json({
           error:
-            "Could not extract text from this file. Please save your resume as a .txt file and re-upload.",
+            "Could not read text from this PDF. Please try: File → Save As → Plain Text (.txt) and upload that instead.",
         });
       }
 
       console.log(
         `[Resume] Extracted ${rawText.length} chars from "${req.file.originalname}"`,
       );
-      console.log(`[Resume] Preview:\n${rawText.slice(0, 400)}\n`);
 
-      const parsedResume = await parseResume(rawText);
+      // Parse resume with LLM — has internal fallback, never throws
+      let parsedResume;
+      try {
+        parsedResume = await parseResume(rawText);
+      } catch (parseErr) {
+        console.error("[Resume] parseResume error:", parseErr.message);
+        // Build minimal fallback so upload still succeeds
+        parsedResume = {
+          name: req.user?.name || "Candidate",
+          email: null,
+          summary: rawText.slice(0, 300),
+          skills: [],
+          experience: [],
+          education: [],
+          projects: [],
+          certifications: [],
+        };
+      }
+
+      // Store in DB — never throws (handles embedding failures gracefully)
+      let stored;
+      try {
+        stored = await storeResume({
+          userId: req.user.id,
+          rawText,
+          parsedResume,
+          filename: req.file.originalname,
+        });
+      } catch (storeErr) {
+        console.error("[Resume] storeResume error:", storeErr.message);
+        return res.status(500).json({
+          error: "Failed to save resume to database. Please try again.",
+          detail: storeErr.message,
+        });
+      }
 
       console.log(
-        "[Resume] Parsed:",
-        JSON.stringify(
-          {
-            name: parsedResume.name,
-            skills: parsedResume.skills?.slice(0, 5),
-            companies: parsedResume.experience?.map((e) => e.company),
-            projects: parsedResume.projects?.map((p) => p.name),
-          },
-          null,
-          2,
-        ),
+        `[Resume] Stored resumeId=${stored.id} for user=${req.user.id}`,
       );
-
-      const stored = await storeResume({
-        userId: req.user.id,
-        rawText,
-        parsedResume,
-        filename: req.file.originalname,
-      });
 
       res.status(201).json({
         message: "Resume uploaded and processed.",
@@ -137,7 +159,9 @@ router.post(
       });
     } catch (err) {
       console.error("[resumes] upload error:", err);
-      res.status(500).json({ error: "Failed to process resume." });
+      res.status(500).json({
+        error: "Unexpected error processing resume. Please try again.",
+      });
     }
   },
 );
