@@ -439,11 +439,20 @@ Respond ONLY with valid JSON — no explanation outside the JSON:
 {
   "score": <integer 1-10, use the full range as described above>,
   "feedback": "<one clear honest sentence about the answer quality>",
-  "strengths": "<what was done well>",
+  "strengths": "<what was done well, or empty string if poor>",
   "improvements": "<specific thing to improve, or empty string if score is 10>",
-  "needsFollowUp": <true ONLY for resume/experience questions where answer was vague — always false for DSA/SQL/quiz>,
-  "followUpReason": ""
-}`;
+  "needsFollowUp": <boolean — see rules below>,
+  "followUpReason": "<if needsFollowUp true: exactly what to probe, e.g. 'Candidate said they optimised queries but gave no specifics — ask what indexes they added and what the performance improvement was'>"
+}
+
+FOLLOW-UP RULES — set needsFollowUp = true when ALL of:
+  1. type is 'resume' (not DSA, SQL, quiz, or followup)
+  2. AND any of these apply:
+     - Answer is generic with no specific project/company/metric details
+     - Answer mentions a result but not HOW they achieved it
+     - Answer is under 80 words and the question asked for experience
+     - Score is 6 or below and the answer has some content worth probing
+Set needsFollowUp = false when: score >= 8, type is not 'resume', or answer already has specific details`;
 
   try {
     const res = await hfChat({
@@ -465,9 +474,13 @@ Respond ONLY with valid JSON — no explanation outside the JSON:
       feedback: p.feedback ?? "Answer received.",
       strengths: p.strengths ?? "",
       improvements: p.improvements ?? "",
+      // Force follow-up for resume questions with short or low-scoring answers,
+      // even if LLM decided false — ensures generic answers always get probed
       needsFollowUp:
-        type === "resume" || type === "followup"
-          ? (p.needsFollowUp ?? false)
+        type === "resume"
+          ? (p.needsFollowUp ?? false) ||
+            (answer.trim().split(/\s+/).length < 40 && (p.score ?? 5) < 8) || // short answer
+            (p.score ?? 5) <= 5 // low score
           : false,
       followUpReason: p.followUpReason ?? "",
     };
