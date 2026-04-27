@@ -78,6 +78,7 @@ export function registerSocketHandlers(io) {
           // Round 1
           r1MainCount: 0,
           r1FollowCount: 0,
+          r1FollowedUpAt: -1,
           r1AskedTopics: [],
           r1Scores: [],
           r1QALog: [],
@@ -331,6 +332,7 @@ async function sendRound1Question(socket) {
 
   session.r1MainCount += 1;
   session.r1FollowCount = 0;
+  session.r1FollowedUpAt = -1;
   session.awaitingFollowUp = false;
 
   // Pick next source, cycling through pool
@@ -436,14 +438,18 @@ async function handleRound1Answer(socket, session, answer) {
     isFollowUp: session.awaitingFollowUp,
   });
 
-  // Follow-up: only on main questions, max 1 per question, answer must be substantive
+  // Follow-up: 1 follow-up per MAIN question (not per round), answer must not be blank
+  // Track which main question last got a follow-up to enforce per-question limit
+  const lastMainIdx = session.r1MainCount - 1;
+  const thisQAlreadyFollowedUp = session.r1FollowedUpAt === lastMainIdx;
   const canFollowUp =
     ev.needsFollowUp &&
-    !session.awaitingFollowUp &&
-    session.r1FollowCount < 1 &&
-    answer.trim().length > 30;
+    !session.awaitingFollowUp && // not already in a follow-up
+    !thisQAlreadyFollowedUp && // this main question hasn't had a follow-up yet
+    answer.trim().length > 10; // answer has some content
 
   if (canFollowUp) {
+    session.r1FollowedUpAt = lastMainIdx; // mark this question as followed up
     await sleep(800);
     await sendFollowUp(socket, session);
   } else if (session.r1MainCount < ROUND1_MAIN) {
